@@ -11,16 +11,21 @@ const char *appKey = "13215CA3CA18A4327A2B68471F7C6601";
 #define loraSerial Serial1
 #define debugSerial Serial
 #define freqPlan TTN_FP_EU868
+#define LED_GREEN 4
 TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
     
 void setup() {
   loraSerial.begin(57600);
   debugSerial.begin(9600);
+
+  pinMode(LED_GREEN,OUTPUT);
     
   while (!debugSerial && millis() < 10000);
 
   debugSerial.println("Connecting To 'The Things Network'");
   ttn.join(appEui, appKey); 
+
+  ttn.onMessage(message);
 
   mlx.begin();
 }
@@ -41,7 +46,7 @@ void loop() {
 
   ttn.sendBytes(object, sizeof(object)); //sending object temperature
 
-  delay(3000);
+  delay(5000);
 
   tempReading = mlx.readAmbientTempC();
   integerPart = (int)tempReading;
@@ -54,5 +59,15 @@ void loop() {
   
   ttn.sendBytes(ambient, sizeof(ambient)); //sending ambient temperature 
 
-  delay(3000);
+  delay(5000);
+}
+
+void message(const uint8_t *payload, size_t size, port_t port)
+{
+    if(payload[0] == 00){
+       digitalWrite(LED_GREEN,LOW);
+    } 
+    if(payload[0] == 01){
+      digitalWrite(LED_GREEN,HIGH);  
+    }
 }
